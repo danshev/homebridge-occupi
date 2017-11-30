@@ -15,5 +15,10 @@
   "bugs": {
     "url": "https://github.com/danshev/homebridge-occupi/issues"
   },
-  "homepage": "https://github.com/danshev/homebridge-occupi#readme"
+  "homepage": "https://github.com/danshev/homebridge-occupi#readme",
+  "dependencies": {
+    "lodash": "^4.17.4",
+    "node-bluetooth": "^1.2.0",
+    "pg": "^7.4.0"
+  }
 }

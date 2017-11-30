@@ -3,35 +3,41 @@
   // Sensor
   sensor: {
     id: null,
-    type: null,
-    bluetooth_identifier: null      // UNIQUE INDEX ON THIS
-  }
+    bluetooth_address: null,    // UNIQUE INDEX ON THIS
+    bluetooth_channel: null,
+    type: null
+  },
 
   // Room
   room: {
     id: null,
-    is_bedroom: null,
-    has_sunlight: null,
-    is_occupied: null,
-    homekit_identifier: null
-  }
+    name: null,
+    is_bedroom: false,
+    has_sunlight: false,
+    homekit_id: null,
+    is_occupied: false
+  },
 
   // RoomSensor
   roomSensor: {
-    id: null,
-    type: null
-  }
+    room_id: null,
+    sensor_id: null
+  },
 
   // MotionDetect
   motionDetect: {
     id: null,
-    type: null
-  }
+    sensor_id: null,
+    timestamp: null
+  },
 
   // BarrierDetect
   barrierDetect: {
     id: null,
-    type: null
+    name: null,
+    room_id: null,
+    direction: null
   }
-
 }
+
+module.exports = schemas

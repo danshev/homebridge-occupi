@@ -1,3 +1,44 @@
+const bluetooth = require('node-bluetooth')
+ 
+// create bluetooth device instance
+const device = new bluetooth.DeviceINQ()
+
+
+device.listPairedDevices(console.log)
+
+/*
+connected = false
+counter = 7
+var intervalID = setInterval(
+  function(){
+    if (!connected) {
+
+      console.log(counter)
+      bluetooth.connect('40-98-ad-3a-05-a7', counter, function(err, connection) {
+        if(!err) {
+          console.log("great success!")
+          connected = true
+        } else {
+          counter ++
+        }
+      })
+    }
+  }, 2000
+)
+
+
+// make bluetooth connect to remote device
+bluetooth.connect('40-98-ad-3a-05-a7', 7, function(err, connection){
+  if(err) return console.error(err)
+
+  connection.on('data', (buffer) => {
+    console.log('received message:', buffer.toString())
+  })
+})
+
+
+
+/*
 const Service, Characteristic;
  
 module.exports = function (homebridge) {
@@ -75,8 +116,6 @@ mySwitch.prototype = {
 
 
 
-
-/* ====================================================================================================== */
 
 
 
