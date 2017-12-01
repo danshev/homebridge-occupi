@@ -35,9 +35,9 @@
   // BarrierDetect
   barrierDetect: {
     id: null,
-    name: null,
     room_id: null,
-    direction: null
+    direction: null,
+    timestamp: null
   }
 }
 

@@ -43,7 +43,7 @@ Sensor.prototype.save = function (callback) {
 
 Sensor.prototype.rooms = function (callback) {
 
-  const queryString = 'SELECT r.*, rs.direction FROM room r INNER JOIN room_sensor rs ON r.id = rs.room_id WHERE rs.sensor_id = $1;'
+  const queryString = 'SELECT r.*, rs.direction FROM room r INNER JOIN room_sensor rs ON r.id = rs.room_id WHERE rs.sensor_id = $1 ORDER BY rs.direction;'
   const values = [this.data.id]
 
   module.parent.pool.query(queryString, values, (err, res) => {

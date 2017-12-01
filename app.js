@@ -14,8 +14,7 @@ Room = require("./models/room.js")
 Sensor = require("./models/sensor.js")
 RoomSensor = require("./models/roomSensor.js")
 MotionDetect = require("./models/motionDetect.js")
-
-
+BarrierDetect = require("./models/barrierDetect.js")
 
 
 /*
@@ -33,7 +32,7 @@ bluetoothData = { address: 'a-b-c', data: 'in' }
 // Use the received bluetooth address to query details about the sensor
 Sensor.findByBluetoothAddress(bluetoothData.address, (success, sensorData) => {
 	if(!success) {
-		console.log('error:' + sensorData)
+		console.log('Sensor.findByBluetoothAddress ... ' + sensorData)
 		return
 	} else if (sensorData === undefined) {
 		console.log('no matching sensor')
@@ -43,7 +42,7 @@ Sensor.findByBluetoothAddress(bluetoothData.address, (success, sensorData) => {
 	sensor = new Sensor(sensorData)
 	sensor.rooms((success, roomData) => {
 		if(!success) {
-			console.log('error:' + sensorData)
+			console.log('sensor.rooms ... ' + sensorData)
 			return
 		} else if (sensorData === undefined) {
 			console.log('no rooms associated with sensor')
@@ -59,7 +58,7 @@ Sensor.findByBluetoothAddress(bluetoothData.address, (success, sensorData) => {
 			
 			room.update((success, updatedRoomData) => {
 				if(!success) {
-					console.log('error:' + updatedRoomData)
+					console.log('room.update ... ' + updatedRoomData)
 					return
 				} else if (updatedRoomData === undefined) {
 					console.log("something went wrong updating the room's occupancy state")
@@ -70,7 +69,7 @@ Sensor.findByBluetoothAddress(bluetoothData.address, (success, sensorData) => {
 				detect = new MotionDetect({ sensor_id: sensor.get('id')})
 				detect.save((success, motionDetectData) => {
 					if(!success) {
-						console.log('error:' + motionDetectData)
+						console.log('detect.save ... ' + motionDetectData)
 						return
 					} else if (motionDetectData === undefined) {
 						console.log("something went wrong while logging the motionDetect")
@@ -83,34 +82,42 @@ Sensor.findByBluetoothAddress(bluetoothData.address, (success, sensorData) => {
 		// Case: Barrier Sensor
 		else {
 			if (roomData.length == 2) {
-				for (roomD of roomData) {
 
-					// set 'in' room's occupancy ==> true
-					if(roomD.direction == 'in') {
-						inRoom = new Room(roomD)
-						inRoom.set('is_occupied', true)
-						
-						inRoom.update((success, updatedRoomData) => {
-							if(!success) {
-								console.log('error:' + updatedRoomData)
-								return
-							} else if (updatedRoomData === undefined) {
-								console.log("something went wrong updating the room's occupancy state")
-								return
-							}
+				// The 'rooms' query returns values ordered by direction (in, out)
+				inRoom = new Room(roomData[0])
+				outRoom = new Room(roomData[1])
 
-							console.log('set occupancy of room w/ id '+ inRoom.get('id') +' => true')
-						})
-					} else {
-						outRoom = new Room(roomD)
-						// query for motion in "out" room for the APPROPRIATE_LENGTH_OF_TIME
-						console.log('initiating motion checking for room w/ id '+ outRoom.get('id'))
+				// log in and out 
+				BarrierDetect.log(inRoom.get('id'), outRoom.get('id'), (success, barrierDetectData) => {
+					if(!success) {
+						console.log('BarrierDetect.log ... ' + barrierDetectData)
+						return
+					} else if (barrierDetectData === undefined) {
+						console.log("something went wrong saving the barrier detects")
+						return
 					}
-				}
+					
+					// set 'in' room's occupancy ==> true
+					inRoom.set('is_occupied', true)
+					inRoom.update((success, updatedRoomData) => {
+						if(!success) {
+							console.log('inRoom.update ... ' + updatedRoomData)
+							return
+						} else if (updatedRoomData === undefined) {
+							console.log("something went wrong updating the room's occupancy state")
+							return
+						}
+
+						console.log('set occupancy of room w/ id '+ inRoom.get('id') +' => true')
+					})
+
+					// query for motion in "out" room for the APPROPRIATE_LENGTH_OF_TIME
+					console.log('initiating motion checking for room w/ id '+ outRoom.get('id'))
+				})
 			} else {
 				console.log('erroneous number of rooms associated with barrier sernsor')
 				return
-			}
+			}	
 		}
 	})
 })
