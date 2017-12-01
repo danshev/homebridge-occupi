@@ -43,7 +43,7 @@ Sensor.prototype.save = function (callback) {
 
 Sensor.prototype.rooms = function (callback) {
 
-  const queryString = 'SELECT r.* FROM room r INNER JOIN room_sensor rs ON r.id = rs.room_id WHERE rs.sensor_id = $1;'
+  const queryString = 'SELECT r.*, rs.direction FROM room r INNER JOIN room_sensor rs ON r.id = rs.room_id WHERE rs.sensor_id = $1;'
   const values = [this.data.id]
 
   module.parent.pool.query(queryString, values, (err, res) => {
@@ -58,7 +58,7 @@ Sensor.prototype.rooms = function (callback) {
 
 
 Sensor.findByBluetoothAddress = function (bluetooth_address, callback) {
-  const queryString = 'SELECT r.id AS room_id, s.* FROM sensor s INNER JOIN room_sensor rs ON s.id = rs.sensor_id INNER JOIN room r ON rs.room_id = r.id WHERE s.bluetooth_address = $1;'
+  const queryString = 'SELECT s.* FROM sensor s WHERE s.bluetooth_address = $1;'
   const values = [bluetooth_address]
 
   module.parent.pool.query(queryString, values, (err, res) => {

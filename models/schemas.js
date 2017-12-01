@@ -21,7 +21,8 @@
   // RoomSensor
   roomSensor: {
     room_id: null,
-    sensor_id: null
+    sensor_id: null,
+    direction: null
   },
 
   // MotionDetect

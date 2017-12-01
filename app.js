@@ -28,47 +28,91 @@ myRoomSensor.save(function(success, data){
 */
 
 
+bluetoothData = { address: 'a-b-c', data: 'in' }
+
 // Use the received bluetooth address to query details about the sensor
-Sensor.findByBluetoothAddress('a-b-c', (success, data) => {
+Sensor.findByBluetoothAddress(bluetoothData.address, (success, sensorData) => {
 	if(!success) {
-		console.log('error:' + data)
+		console.log('error:' + sensorData)
 		return
-	} else if (data === undefined) {
+	} else if (sensorData === undefined) {
 		console.log('no matching sensor')
 		return
 	}
 
-	sensor = new Sensor(data)
-	if(sensor.get('type') === 'motion') {
+	sensor = new Sensor(sensorData)
+	sensor.rooms((success, roomData) => {
+		if(!success) {
+			console.log('error:' + sensorData)
+			return
+		} else if (sensorData === undefined) {
+			console.log('no rooms associated with sensor')
+			return
+		}
 
-		// set room's occupancy ==> true
-		room = new Room({ id: data.room_id, is_occupied: true })
-		room.update(function(success, data){
-			console.log(success)
-			console.log(data)
+		// Case: Motion Sensor
+		if(sensor.get('type') === 'motion') {
 
-			// log the detect
-			detect = new MotionDetect({ sensor_id: sensor.get('id')})
-			detect.save(function(success, data){
-				console.log(success)
-				console.log(data)
+			// set room's occupancy ==> true
+			room = new Room(roomData[0])
+			room.set('is_occupied', true)
+			
+			room.update((success, updatedRoomData) => {
+				if(!success) {
+					console.log('error:' + updatedRoomData)
+					return
+				} else if (updatedRoomData === undefined) {
+					console.log("something went wrong updating the room's occupancy state")
+					return
+				}
+
+				// log the detect
+				detect = new MotionDetect({ sensor_id: sensor.get('id')})
+				detect.save((success, motionDetectData) => {
+					if(!success) {
+						console.log('error:' + motionDetectData)
+						return
+					} else if (motionDetectData === undefined) {
+						console.log("something went wrong while logging the motionDetect")
+						return
+					}
+				})
 			})
-		})
+		} 
 
-	} 
+		// Case: Barrier Sensor
+		else {
+			if (roomData.length == 2) {
+				for (roomD of roomData) {
 
-	// barrier sensor
-	else {
-		room = new Room({
-							id: data.room_id,
-						    name: data.name,
-						    is_bedroom: data.is_bedroom,
-						    has_sunlight: data.has_sunlight,
-						    homekit_id: data.homekit_id,
-						    is_occupied: data.is_occupied
+					// set 'in' room's occupancy ==> true
+					if(roomD.direction == 'in') {
+						inRoom = new Room(roomD)
+						inRoom.set('is_occupied', true)
+						
+						inRoom.update((success, updatedRoomData) => {
+							if(!success) {
+								console.log('error:' + updatedRoomData)
+								return
+							} else if (updatedRoomData === undefined) {
+								console.log("something went wrong updating the room's occupancy state")
+								return
+							}
+
+							console.log('set occupancy of room w/ id '+ inRoom.get('id') +' => true')
 						})
-	}
-
+					} else {
+						outRoom = new Room(roomD)
+						// query for motion in "out" room for the APPROPRIATE_LENGTH_OF_TIME
+						console.log('initiating motion checking for room w/ id '+ outRoom.get('id'))
+					}
+				}
+			} else {
+				console.log('erroneous number of rooms associated with barrier sernsor')
+				return
+			}
+		}
+	})
 })
 
 
