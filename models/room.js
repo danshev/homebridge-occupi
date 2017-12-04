@@ -55,6 +55,105 @@ Room.prototype.update = function (callback) {
   })
 }
 
+Room.prototype.getOccupancyData = function (timeWindow, callback) {
+
+  this.data = this.sanitize(this.data)
+
+  const queryString = "SELECT (SELECT COUNT(*) FROM barrier_detect WHERE room_id = $1 AND direction = 'in' AND timestamp > (now() - INTERVAL '"+ timeWindow +"')) - (SELECT COUNT(*) FROM barrier_detect WHERE room_id = $1 AND direction = 'out' AND timestamp > (now() - INTERVAL '"+ timeWindow +"')) AS barrier_total, (SELECT timestamp FROM barrier_detect WHERE room_id = $1 ORDER BY timestamp DESC LIMIT 1) AS last_out, $1 AS room_id, (SELECT is_occupied FROM room WHERE id = $1) AS is_occupied, (SELECT count(*) FROM motion_detect md INNER JOIN room_sensor rs ON md.sensor_id = rs.sensor_id WHERE rs.room_id = $1 AND timestamp > greatest(coalesce((SELECT timestamp FROM barrier_detect WHERE room_id = $1 ORDER BY timestamp DESC LIMIT 1), now() - INTERVAL '"+ timeWindow +"'), now() - INTERVAL '"+ timeWindow +"')) AS motion_total;"
+  const values = [this.data.id]
+
+/*
+SELECT 
+  $1 AS room_id,
+  (SELECT 
+    COUNT(*) 
+  FROM barrier_detect 
+  WHERE 
+    room_id = $1 
+    AND direction = 'in'
+    AND timestamp > (now() - INTERVAL '"+ timeWindow +"')
+  ) - (
+  SELECT 
+    COUNT(*) 
+  FROM barrier_detect 
+  WHERE 
+    room_id = $1 
+    AND direction = 'out'
+    AND timestamp > (now() - INTERVAL '"+ timeWindow +"')
+  ) AS barrier_total, 
+  (SELECT
+    timestamp 
+  FROM barrier_detect 
+  WHERE 
+    room_id = $1 
+  ORDER BY 
+    timestamp 
+  DESC LIMIT 1) AS last_out, 
+  (SELECT 
+    is_occupied 
+  FROM room 
+  WHERE 
+    id = $1) AS is_occupied, 
+  (SELECT
+    count(*)
+  FROM motion_detect md 
+  INNER JOIN room_sensor rs 
+  ON md.sensor_id = rs.sensor_id 
+  WHERE 
+    rs.room_id = 2 
+    AND timestamp > greatest(coalesce(
+                      (SELECT 
+                        timestamp 
+                      FROM barrier_detect 
+                      WHERE 
+                        room_id = 2 
+                      ORDER BY timestamp 
+                      DESC LIMIT 1), 
+                      now() - INTERVAL '"+ timeWindow +"'
+                    ), now() - INTERVAL '"+ timeWindow +"')
+    ) AS motion_total
+*/
+
+
+  module.parent.pool.query(queryString, values, (err, res) => {
+    if (err) {
+      callback(false, err)
+    } else {
+      callback(true, res.rows[0])
+    }
+  })
+}
+
+
+Room.prototype.getNumberMotionSensors = function (callback) {
+
+  this.data = this.sanitize(this.data)
+
+  const queryString = "SELECT count(*) FROM sensor s INNER JOIN room_sensor rs ON s.id = rs.sensor_id INNER JOIN room r ON rs.room_id = r.id WHERE r.id = $1 AND s.type = 'motion';"
+  const values = [this.data.id]
+
+  module.parent.pool.query(queryString, values, (err, res) => {
+    if (err) {
+      callback(false, err)
+    } else {
+      callback(true, res.rows[0].count)
+    }
+  })
+}
+
+Room.getAll = function (callback) {
+  const queryString = "SELECT * FROM room;"
+  const values = []
+
+  module.parent.pool.query(queryString, values, (err, res) => {
+    if (err) {
+      callback(false, err)
+    } else {
+      callback(true, res.rows)
+    }
+  })
+}
+
 
 
 module.exports = Room
