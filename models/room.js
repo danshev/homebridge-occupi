@@ -154,6 +154,19 @@ Room.getAll = function (callback) {
   })
 }
 
+Room.getByID = function (room_id, callback) {
+  const queryString = "SELECT * FROM room WHERE id = $1;"
+  const values = [room_id]
+
+  module.parent.pool.query(queryString, values, (err, res) => {
+    if (err) {
+      callback(false, err)
+    } else {
+      callback(true, res.rows)
+    }
+  })
+}
+
 
 
 module.exports = Room
