@@ -162,7 +162,7 @@ Room.getByID = function (room_id, callback) {
     if (err) {
       callback(false, err)
     } else {
-      callback(true, res.rows)
+      callback(true, res.rows[0])
     }
   })
 }

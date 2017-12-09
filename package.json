@@ -10,12 +10,19 @@
     "type": "git",
     "url": "git+https://github.com/danshev/homebridge-occupi.git"
   },
+  "keywords": [
+    "homebridge-plugin"
+  ],
   "author": "Dan",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/danshev/homebridge-occupi/issues"
   },
   "homepage": "https://github.com/danshev/homebridge-occupi#readme",
+  "engines": {
+    "node": ">=0.12.0",
+    "homebridge": ">=0.3.0"
+  },
   "dependencies": {
     "lodash": "^4.17.4",
     "node-bluetooth": "^1.2.0",

@@ -73,157 +73,166 @@ periodicOccupancyChecker = setInterval(function periodicOccupancyCheck() {
 }, 3000)
 
 
+setTimeout(this.handleBluetoothEvent({ "address": , "data": }, ))
+setTimeout(this.handleBluetoothEvent({ "address": , "data": }, ))
+setTimeout(this.handleBluetoothEvent({ "address": , "data": }, ))
+setTimeout(this.handleBluetoothEvent({ "address": , "data": }, ))
+setTimeout(this.handleBluetoothEvent({ "address": , "data": }, ))
+setTimeout(this.handleBluetoothEvent({ "address": , "data": }, ))
+setTimeout(this.handleBluetoothEvent({ "address": , "data": }, ))
+setTimeout(this.handleBluetoothEvent({ "address": , "data": }, ))
+setTimeout(this.handleBluetoothEvent({ "address": , "data": }, ))
+setTimeout(this.handleBluetoothEvent({ "address": , "data": }, ))
+setTimeout(this.handleBluetoothEvent({ "address": , "data": }, ))
 
 
 
+function handleBluetoothEvent(bluetoothData, descriptionForLog) {
 
-
-
-/*
-// *** FAKE
-bluetoothData = { address: 'd-e-f', data: 'in' }
-
-// Use the received bluetooth address to query details about the sensor
-Sensor.findByBluetoothAddress(bluetoothData.address, (success, sensorData) => {
-	if(!success) {
-		console.log('Sensor.findByBluetoothAddress ... ' + sensorData)
-		return
-	} else if (sensorData === undefined) {
-		console.log('no matching sensor')
-		return
-	}
-
-	sensor = new Sensor(sensorData)
-	sensor.rooms((success, roomData) => {
+	Sensor.findByBluetoothAddress(bluetoothData.address, (success, sensorData) => {
 		if(!success) {
-			console.log('sensor.rooms ... ' + sensorData)
+			console.log('Sensor.findByBluetoothAddress ... ' + sensorData)
 			return
 		} else if (sensorData === undefined) {
-			console.log('no rooms associated with sensor')
+			console.log('no matching sensor')
 			return
 		}
 
-		// Case: Motion Sensor
-		if(sensor.get('type') === 'motion') {
+		sensor = new Sensor(sensorData)
+		sensor.rooms((success, roomData) => {
+			if(!success) {
+				console.log('sensor.rooms ... ' + sensorData)
+				return
+			} else if (sensorData === undefined) {
+				console.log('no rooms associated with sensor')
+				return
+			}
 
-			// set room's occupancy ==> true
-			room = new Room(roomData[0])
-			room.set('is_occupied', true)
-			
-			room.update((success, updatedRoomData) => {
-				if(!success) {
-					console.log('room.update ... ' + updatedRoomData)
-					return
-				} else if (updatedRoomData === undefined) {
-					console.log("something went wrong updating the room's occupancy state")
-					return
-				}
+			// Case: Motion Sensor
+			if(sensor.get('type') === 'motion') {
 
-				// log the detect
-				detect = new MotionDetect({ sensor_id: sensor.get('id')})
-				detect.save((success, motionDetectData) => {
+				// set room's occupancy ==> true
+				room = new Room(roomData[0])
+				room.set('is_occupied', true)
+				
+				room.update((success, updatedRoomData) => {
 					if(!success) {
-						console.log('detect.save ... ' + motionDetectData)
+						console.log('room.update ... ' + updatedRoomData)
 						return
-					} else if (motionDetectData === undefined) {
-						console.log("something went wrong while logging the motionDetect")
-						return
-					}
-				})
-			})
-		} 
-
-		// Case: Barrier Sensor
-		else {
-
-			// Validate the correct setup exists (1 barrier sensor joins 2 rooms)
-			if (roomData.length == 2) {
-
-				// The sensor.rooms() query always returns data rows ordered by direction, so 'in' then 'out'
-				inRoom = bluetoothData.data == 'in' ? new Room(roomData[0]) : new Room(roomData[1])
-				outRoom = bluetoothData.data == 'in' ? new Room(roomData[1]) : new Room(roomData[0])
-
-				// Log the event (in's and out's)
-				BarrierDetect.log(inRoom.get('id'), outRoom.get('id'), (success, barrierDetectData) => {
-					if(!success) {
-						console.log('BarrierDetect.log ... ' + barrierDetectData)
-						return
-					} else if (barrierDetectData === undefined) {
-						console.log("something went wrong saving the barrier detects")
+					} else if (updatedRoomData === undefined) {
+						console.log("something went wrong updating the room's occupancy state")
 						return
 					}
 
-					timeWindow = outRoom.get('is_bedroom') ? '360 min' : '120 min'
-
-					// Get the calculated number of occupants in the 'out' room
-					outRoom.getOccupancyData(timeWindow, (success, occupancyData) => {
+					// log the detect
+					detect = new MotionDetect({ sensor_id: sensor.get('id')})
+					detect.save((success, motionDetectData) => {
 						if(!success) {
-							console.log('outRoom.getOccupancyData ... ' + occupancyData)
+							console.log('detect.save ... ' + motionDetectData)
 							return
-						} else if (occupancyData === undefined) {
-							console.log("something went wrong getting the outRoom occupancy data")
+						} else if (motionDetectData === undefined) {
+							console.log("something went wrong while logging the motionDetect")
+							return
+						}
+					})
+				})
+			} 
+
+			// Case: Barrier Sensor
+			else {
+
+				// Validate the correct setup exists (1 barrier sensor joins 2 rooms)
+				if (roomData.length == 2) {
+
+					// The sensor.rooms() query always returns data rows ordered by direction, so 'in' then 'out'
+					inRoom = bluetoothData.data == 'in' ? new Room(roomData[0]) : new Room(roomData[1])
+					outRoom = bluetoothData.data == 'in' ? new Room(roomData[1]) : new Room(roomData[0])
+
+					// Log the event (in's and out's)
+					BarrierDetect.log(inRoom.get('id'), outRoom.get('id'), (success, barrierDetectData) => {
+						if(!success) {
+							console.log('BarrierDetect.log ... ' + barrierDetectData)
+							return
+						} else if (barrierDetectData === undefined) {
+							console.log("something went wrong saving the barrier detects")
 							return
 						}
 
-						// COULD ADD NUMBER OF MOTION SENSORS TO getOccupancyData()
+						timeWindow = outRoom.get('is_bedroom') ? '360 min' : '120 min'
 
-						// IF the room doesn't have motion sensors, then the occupancyData.barrier_total value is the go-by
-						outRoom.getNumberMotionSensors((success, motionSensorCount) => {
+						// Get the calculated number of occupants in the 'out' room
+						outRoom.getOccupancyData(timeWindow, (success, occupancyData) => {
 							if(!success) {
-								console.log('outRoom.getNumberMotionSensors ... ' + motionSensorCount)
+								console.log('outRoom.getOccupancyData ... ' + occupancyData)
 								return
-							} else if (motionSensorCount === undefined) {
-								console.log("something went wrong getting the count of motion sensors")
+							} else if (occupancyData === undefined) {
+								console.log("something went wrong getting the outRoom occupancy data")
 								return
 							}
 
-							if (motionSensorCount == 0) {
-								if (occupancyData.barrier_total <= 0) {
-									
-									//	Set 'out' room's occupancy ==> false
-									outRoom.set('is_occupied', false)
-									outRoom.update((success, updatedRoomData) => {
-										if(!success) {
-											console.log('outRoom.update ... ' + updatedRoomData)
-											return
-										} else if (updatedRoomData === undefined) {
-											console.log("something went wrong updating the room's occupancy state")
-											return
-										}
+							// COULD ADD NUMBER OF MOTION SENSORS TO getOccupancyData()
 
-										console.log('updated occupancy => false of room id: '+ outRoom.get('id'))
-									})
-								} else {
-									// Room remains occupied by some (calculated) number of persons
-									console.log('room w/ id '+ outRoom.get('id') +' remains occupied by '+ occupancyData.barrier_total + ' person')
+							// IF the room doesn't have motion sensors, then the occupancyData.barrier_total value is the go-by
+							outRoom.getNumberMotionSensors((success, motionSensorCount) => {
+								if(!success) {
+									console.log('outRoom.getNumberMotionSensors ... ' + motionSensorCount)
+									return
+								} else if (motionSensorCount === undefined) {
+									console.log("something went wrong getting the count of motion sensors")
+									return
 								}
-							} else {
-								// If there are motion sensors, then the outRoom's occupancy will be analyzed by the periodic adjust routine
+
+								if (motionSensorCount == 0) {
+									if (occupancyData.barrier_total <= 0) {
+										
+										//	Set 'out' room's occupancy ==> false
+										outRoom.set('is_occupied', false)
+										outRoom.update((success, updatedRoomData) => {
+											if(!success) {
+												console.log('outRoom.update ... ' + updatedRoomData)
+												return
+											} else if (updatedRoomData === undefined) {
+												console.log("something went wrong updating the room's occupancy state")
+												return
+											}
+
+											console.log('updated occupancy => false of room id: '+ outRoom.get('id'))
+										})
+									} else {
+										// Room remains occupied by some (calculated) number of persons
+										console.log('room w/ id '+ outRoom.get('id') +' remains occupied by '+ occupancyData.barrier_total + ' person')
+									}
+								} else {
+									// If there are motion sensors, then the outRoom's occupancy will be analyzed by the periodic adjust routine
+								}
+							})
+						})
+						
+						// set 'in' room's occupancy ==> true
+						inRoom.set('is_occupied', true)
+						inRoom.update((success, updatedRoomData) => {
+							if(!success) {
+								console.log('inRoom.update ... ' + updatedRoomData)
+								return
+							} else if (updatedRoomData === undefined) {
+								console.log("something went wrong updating the room's occupancy state")
+								return
 							}
+
+							console.log('updated occupancy => true of room id: '+ inRoom.get('id'))
 						})
 					})
-					
-					// set 'in' room's occupancy ==> true
-					inRoom.set('is_occupied', true)
-					inRoom.update((success, updatedRoomData) => {
-						if(!success) {
-							console.log('inRoom.update ... ' + updatedRoomData)
-							return
-						} else if (updatedRoomData === undefined) {
-							console.log("something went wrong updating the room's occupancy state")
-							return
-						}
-
-						console.log('updated occupancy => true of room id: '+ inRoom.get('id'))
-					})
-				})
-			} else {
-				console.log('erroneous number of rooms associated w/ barrier sernsor id= '+ sensor.get('id'))
-				return
-			}	
-		}
+				} else {
+					console.log('erroneous number of rooms associated w/ barrier sernsor id= '+ sensor.get('id'))
+					return
+				}	
+			}
+		})
 	})
-})
+}
+
+
+
 
 
 
